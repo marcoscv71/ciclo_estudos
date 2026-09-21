@@ -1,8 +1,12 @@
+from http import HTTPStatus
+
 from fastapi import FastAPI
 
-app = FastAPI(title="Ciclo de Estudos TCE-GO")
+from ciclo_estudos.schemas import Message
+
+app = FastAPI(title='Ciclo de Estudos TCE-GO')
 
 
-@app.get("/")
+@app.get('/', status_code=HTTPStatus.OK, response_model=Message)
 def read_root():
-    return {"message": "API do Ciclo de Estudos TCE-GO"}
+    return {'message': 'API do Ciclo de Estudos TCE-GO'}
