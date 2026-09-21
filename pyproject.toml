@@ -1,0 +1,56 @@
+[project]
+name = "ciclo-estudos"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Marcos Vinícius Silva", email = "marcoscv71@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "poethepoet>=0.48.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.8",
+    "typos>=1.50.2",
+]
+
+[tool.ruff]
+line-length = 79
+extend-exclude = ['migrations']
+
+[tool.ruff.lint]
+preview = true
+select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[tool.pytest]
+addopts = ['-p', 'no:warnings', '--cov=ciclo_estudos', '--cov-context=test']
+
+[tool.typos.files]
+extend-exclude = ['*.md']
+
+[tool.poe.tasks]
+lint = 'ruff check'
+format.sequence = [
+  { cmd = 'ruff check --fix' },
+  { cmd = 'ruff format' },
+]
+serve = 'fastapi dev src/ciclo_estudos/app.py'
+test.sequence = [
+  'lint',
+  { cmd = 'pytest -s -x -vv $POE_EXTRA_ARGS' },
+  { cmd = 'coverage html --show-contexts' },
+]
