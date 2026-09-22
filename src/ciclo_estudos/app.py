@@ -1,11 +1,12 @@
 from http import HTTPStatus
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
 from ciclo_estudos.schemas import (
     Message,
     SubjectDB,
+    SubjectList,
     SubjectPublic,
     SubjectSchema,
 )
@@ -44,3 +45,38 @@ def create_subject(subject: SubjectSchema):
     database.append(subject_with_id)
 
     return subject_with_id
+
+
+@app.get('/subjects', status_code=HTTPStatus.OK, response_model=SubjectList)
+def read_subjects():
+    return {'subjects': database}
+
+
+@app.put('/subjects/{subject_id}', response_model=SubjectPublic)
+def update_subject(subject_id: int, subject: SubjectSchema):
+    if subject_id > len(database) or subject_id < 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Subject not found'
+        )
+
+    current = database[subject_id - 1]
+    subject_with_id = SubjectDB(
+        **subject.model_dump(),
+        id=subject_id,
+        completed_hours=current.completed_hours,
+    )
+    database[subject_id - 1] = subject_with_id
+
+    return subject_with_id
+
+
+@app.delete('/subjects/{subject_id}', response_model=Message)
+def delete_subject(subject_id: int):
+    if subject_id > len(database) or subject_id < 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Subject not found'
+        )
+
+    del database[subject_id - 1]
+
+    return {'message': 'Subject deleted'}

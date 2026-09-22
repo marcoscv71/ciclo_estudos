@@ -20,3 +20,7 @@ class SubjectPublic(BaseModel):
 class SubjectDB(SubjectSchema):
     id: int
     completed_hours: float = 0.0
+
+
+class SubjectList(BaseModel):
+    subjects: list[SubjectPublic]
