@@ -1,12 +1,7 @@
 from http import HTTPStatus
 
-from fastapi.testclient import TestClient
 
-from ciclo_estudos.app import app
-
-
-def test_root_deve_retornar_ok_e_mensagem_do_ciclo():
-    client = TestClient(app)
+def test_root_should_return_ok_and_cycle_message(client):
 
     response = client.get('/')
 
@@ -14,11 +9,25 @@ def test_root_deve_retornar_ok_e_mensagem_do_ciclo():
     assert response.json() == {'message': 'API do Ciclo de Estudos TCE-GO'}
 
 
-def test_painel_deve_retornar_ok_e_titulo():
-    client = TestClient(app)
+def test_dashboard_should_return_ok_and_html_title(client):
 
-    response = client.get('/painel')
+    response = client.get('/dashboard')
 
     assert response.status_code == HTTPStatus.OK
     assert response.headers['content-type'].startswith('text/html')
     assert '<h1>Ciclo de Estudos TCE-GO</h1>' in response.text
+
+
+def test_create_subject_should_return_created_and_subject(client):
+    response = client.post(
+        '/subjects',
+        json={'name': 'Gerais - Lingua Portuguesa', 'target_hours': 2.0},
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json() == {
+        'id': 1,
+        'name': 'Gerais - Lingua Portuguesa',
+        'target_hours': 2.0,
+        'completed_hours': 0.0,
+    }
