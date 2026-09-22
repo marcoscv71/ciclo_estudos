@@ -13,3 +13,6 @@ wheels/
 htmlcov/
 .pytest_cache/
 .ruff_cache/
+
+.env
+database.db
