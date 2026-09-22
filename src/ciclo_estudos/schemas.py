@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Message(BaseModel):
@@ -15,11 +15,7 @@ class SubjectPublic(BaseModel):
     name: str
     target_hours: float
     completed_hours: float
-
-
-class SubjectDB(SubjectSchema):
-    id: int
-    completed_hours: float = 0.0
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SubjectList(BaseModel):

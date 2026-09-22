@@ -1,19 +1,21 @@
 from http import HTTPStatus
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from ciclo_estudos.database import get_session
+from ciclo_estudos.models import Subject
 from ciclo_estudos.schemas import (
     Message,
-    SubjectDB,
     SubjectList,
     SubjectPublic,
     SubjectSchema,
 )
 
 app = FastAPI(title='Ciclo de Estudos TCE-GO')
-
-database = []
 
 
 @app.get('/', status_code=HTTPStatus.OK, response_model=Message)
@@ -35,48 +37,82 @@ def read_dashboard():
 
 
 @app.post(
-    '/subjects',
+    '/subjects/',
     status_code=HTTPStatus.CREATED,
     response_model=SubjectPublic,
 )
-def create_subject(subject: SubjectSchema):
-    subject_with_id = SubjectDB(**subject.model_dump(), id=len(database) + 1)
+def create_subject(
+    subject: SubjectSchema, session: Session = Depends(get_session)
+):
+    db_subject = session.scalar(
+        select(Subject).where(Subject.name == subject.name)
+    )
+    if db_subject:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT, detail='Subject already exists'
+        )
 
-    database.append(subject_with_id)
+    db_subject = Subject(name=subject.name, target_hours=subject.target_hours)
+    session.add(db_subject)
+    session.commit()
+    session.refresh(db_subject)
 
-    return subject_with_id
+    return db_subject
 
 
-@app.get('/subjects', status_code=HTTPStatus.OK, response_model=SubjectList)
-def read_subjects():
-    return {'subjects': database}
+@app.get('/subjects/', status_code=HTTPStatus.OK, response_model=SubjectList)
+def read_subjects(
+    offset: int = 0, limit: int = 100, session: Session = Depends(get_session)
+):
+    subjects = session.scalars(
+        select(Subject).offset(offset).limit(limit)
+    ).all()
+
+    return {'subjects': subjects}
 
 
 @app.put('/subjects/{subject_id}', response_model=SubjectPublic)
-def update_subject(subject_id: int, subject: SubjectSchema):
-    if subject_id > len(database) or subject_id < 1:
+def update_subject(
+    subject_id: int,
+    subject: SubjectSchema,
+    session: Session = Depends(get_session),
+):
+    db_subject = session.scalar(
+        select(Subject).where(Subject.id == subject_id)
+    )
+
+    if not db_subject:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Subject not found'
         )
 
-    current = database[subject_id - 1]
-    subject_with_id = SubjectDB(
-        **subject.model_dump(),
-        id=subject_id,
-        completed_hours=current.completed_hours,
-    )
-    database[subject_id - 1] = subject_with_id
+    try:
+        db_subject.name = subject.name
+        db_subject.target_hours = subject.target_hours
+        session.commit()
+        session.refresh(db_subject)
 
-    return subject_with_id
+        return db_subject
+
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Subject already exists',
+        )
 
 
 @app.delete('/subjects/{subject_id}', response_model=Message)
-def delete_subject(subject_id: int):
-    if subject_id > len(database) or subject_id < 1:
+def delete_subject(subject_id: int, session: Session = Depends(get_session)):
+    db_subject = session.scalar(
+        select(Subject).where(Subject.id == subject_id)
+    )
+
+    if not db_subject:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Subject not found'
         )
 
-    del database[subject_id - 1]
+    session.delete(db_subject)
+    session.commit()
 
     return {'message': 'Subject deleted'}
