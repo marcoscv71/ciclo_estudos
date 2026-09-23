@@ -16,7 +16,7 @@ from ciclo_estudos.security import get_password_hash
 @pytest.fixture
 def token(client, user):
     response = client.post(
-        '/token',
+        'auth/token',
         data={'username': user.email, 'password': user.clean_password},
     )
 

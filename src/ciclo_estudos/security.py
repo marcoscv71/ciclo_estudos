@@ -13,7 +13,7 @@ from ciclo_estudos.database import get_session
 from ciclo_estudos.models import User
 from ciclo_estudos.settings import Settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 pwd_context = PasswordHash.recommended()
 
