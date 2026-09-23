@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -16,10 +17,11 @@ def get_user_service(session: Session = Depends(get_session)) -> UserService:
     return UserService(UserRepository(session))
 
 
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+
+
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
-def create_user(
-    user: UserSchema, service: UserService = Depends(get_user_service)
-):
+def create_user(user: UserSchema, service: UserServiceDep):
     try:
         return service.create(user.username, user.email, user.password)
     except UserAlreadyExistsError:

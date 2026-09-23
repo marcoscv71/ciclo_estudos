@@ -1,6 +1,7 @@
 from http import HTTPStatus
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ciclo_estudos.database import get_session
@@ -11,6 +12,7 @@ from ciclo_estudos.exceptions import (
 from ciclo_estudos.models import Subject, User
 from ciclo_estudos.repositories.subjects import SubjectRepository
 from ciclo_estudos.schemas import (
+    FilterPage,
     Message,
     SubjectList,
     SubjectPublic,
@@ -28,6 +30,10 @@ def get_subject_service(
     return SubjectService(SubjectRepository(session))
 
 
+SubjectServiceDep = Annotated[SubjectService, Depends(get_subject_service)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
 @router.post(
     '/',
     status_code=HTTPStatus.CREATED,
@@ -35,8 +41,8 @@ def get_subject_service(
 )
 def create_subject(
     subject: SubjectSchema,
-    service: SubjectService = Depends(get_subject_service),
-    current_user: User = Depends(get_current_user),
+    service: SubjectServiceDep,
+    current_user: CurrentUser,
 ) -> Subject:
     try:
         return service.create(subject.name, subject.target_hours)
@@ -49,20 +55,23 @@ def create_subject(
 
 @router.get('/', status_code=HTTPStatus.OK, response_model=SubjectList)
 def read_subjects(
-    offset: int = 0,
-    limit: int = 100,
-    service: SubjectService = Depends(get_subject_service),
-    current_user: User = Depends(get_current_user),
+    service: SubjectServiceDep,
+    current_user: CurrentUser,
+    filter_page: Annotated[FilterPage, Query()],
 ) -> dict[str, list[Subject]]:
-    return {'subjects': service.list(offset=offset, limit=limit)}
+    return {
+        'subjects': service.list(
+            offset=filter_page.offset, limit=filter_page.limit
+        )
+    }
 
 
 @router.put('/{subject_id}', response_model=SubjectPublic)
 def update_subject(
     subject_id: int,
     subject: SubjectSchema,
-    service: SubjectService = Depends(get_subject_service),
-    current_user: User = Depends(get_current_user),
+    service: SubjectServiceDep,
+    current_user: CurrentUser,
 ):
     try:
         return service.update(subject_id, subject.name, subject.target_hours)
@@ -79,8 +88,8 @@ def update_subject(
 @router.delete('/{subject_id}', response_model=Message)
 def delete_subject(
     subject_id: int,
-    service: SubjectService = Depends(get_subject_service),
-    current_user: User = Depends(get_current_user),
+    service: SubjectServiceDep,
+    current_user: CurrentUser,
 ):
     try:
         service.delete(subject_id)

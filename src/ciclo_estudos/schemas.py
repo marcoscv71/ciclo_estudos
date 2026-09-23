@@ -38,3 +38,8 @@ class UserPublic(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class FilterPage(BaseModel):
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=100, gt=0, le=100)
