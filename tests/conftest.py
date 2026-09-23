@@ -9,7 +9,18 @@ from sqlalchemy.pool import StaticPool
 
 from ciclo_estudos.app import app
 from ciclo_estudos.database import get_session
-from ciclo_estudos.models import Subject, table_registry
+from ciclo_estudos.models import Subject, User, table_registry
+from ciclo_estudos.security import get_password_hash
+
+
+@pytest.fixture
+def token(client, user):
+    response = client.post(
+        '/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+
+    return response.json()['access_token']
 
 
 @pytest.fixture
@@ -68,3 +79,20 @@ def subject(session):
     session.refresh(subject)
 
     return subject
+
+
+@pytest.fixture
+def user(session):
+    password = 'testtest'
+    user = User(
+        username='Teste',
+        email='teste@test.com',
+        password=get_password_hash(password),
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    user.clean_password = password  # type: ignore
+
+    return user
