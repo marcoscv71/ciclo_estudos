@@ -19,7 +19,6 @@ def test_create_subject(session, mock_db_time):
         'id': 1,
         'name': 'TI - Redes',
         'target_hours': 3.0,
-        'completed_hours': 0.0,
         'created_at': time,
         'updated_at': time,
     }

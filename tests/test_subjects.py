@@ -15,7 +15,6 @@ def test_create_subject_should_return_created_and_subject(client, token):
         'id': 1,
         'name': 'Gerais - Lingua Portuguesa',
         'target_hours': 2.0,
-        'completed_hours': 0.0,
     }
 
 
@@ -52,7 +51,6 @@ def test_update_subject(client, subject, token):
         'id': subject.id,
         'name': 'TI - Redes de Computadores',
         'target_hours': 4.0,
-        'completed_hours': 0.0,
     }
 
 

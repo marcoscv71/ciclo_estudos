@@ -16,3 +16,7 @@ class UserAlreadyExistsError(DomainError):
 
 class InvalidCredentialsError(DomainError):
     """The email or password is incorrect."""
+
+
+class StudySessionNotFoundError(DomainError):
+    """The requested study session does not exist."""

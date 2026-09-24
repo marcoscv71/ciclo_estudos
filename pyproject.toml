@@ -66,3 +66,6 @@ test.sequence = [
 
 [tool.coverage.run]
 core = 'ctrace'
+
+[tool.ruff.lint.per-file-ignores]
+'tests/**' = ['PLR2004']
