@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class Message(BaseModel):
@@ -46,20 +46,30 @@ class FilterPage(BaseModel):
     limit: int = Field(default=100, gt=0, le=100)
 
 
+class UTCModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('*')
+    @classmethod
+    def ensure_utc(cls, value):
+        if isinstance(value, datetime) and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value
+
+
 class StudySessionSchema(BaseModel):
     subject_id: int
     minutes: int = Field(gt=0, le=600)
     notes: str | None = Field(default=None, max_length=280)
 
 
-class StudySessionPublic(BaseModel):
+class StudySessionPublic(UTCModel):
     id: int
     subject_id: int
     cycle_id: int
     minutes: int
     notes: str | None
     studied_at: datetime
-    model_config = ConfigDict(from_attributes=True)
 
 
 class StudySessionList(BaseModel):
@@ -75,7 +85,7 @@ class SubjectProgressPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class CycleProgressPublic(BaseModel):
+class CycleProgressPublic(UTCModel):
     id: int
     number: int
     started_at: datetime
@@ -83,12 +93,10 @@ class CycleProgressPublic(BaseModel):
     total_completed_hours: float
     is_complete: bool
     subjects: list[SubjectProgressPublic]
-    model_config = ConfigDict(from_attributes=True)
 
 
-class CyclePublic(BaseModel):
+class CyclePublic(UTCModel):
     id: int
     number: int
     started_at: datetime
     finished_at: datetime | None
-    model_config = ConfigDict(from_attributes=True)
