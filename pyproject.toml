@@ -63,6 +63,7 @@ test.sequence = [
   { cmd = 'pytest -s -x -vv $POE_EXTRA_ARGS' },
   { cmd = 'coverage html --show-contexts' },
 ]
+seed = 'python scripts/seed.py'
 
 [tool.coverage.run]
 core = 'ctrace'
