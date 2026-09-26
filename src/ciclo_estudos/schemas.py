@@ -76,13 +76,15 @@ class StudySessionList(BaseModel):
     sessions: list[StudySessionPublic]
 
 
-class SubjectProgressPublic(BaseModel):
+class SubjectProgressPublic(UTCModel):
     id: int
     name: str
     target_hours: float
+    target_minutes: int
     completed_hours: float
+    completed_minutes: int
+    percent: int
     is_complete: bool
-    model_config = ConfigDict(from_attributes=True)
 
 
 class CycleProgressPublic(UTCModel):
@@ -91,6 +93,8 @@ class CycleProgressPublic(UTCModel):
     started_at: datetime
     total_target_hours: float
     total_completed_hours: float
+    total_completed_minutes: int
+    percent: int
     is_complete: bool
     subjects: list[SubjectProgressPublic]
 

@@ -19,7 +19,10 @@ class SubjectRepository:
     def list(self, offset: int = 0, limit: int = 100) -> list[Subject]:
         return list(
             self.session.scalars(
-                select(Subject).offset(offset).limit(limit)
+                select(Subject)
+                .order_by(Subject.id)
+                .offset(offset)
+                .limit(limit)
             ).all()
         )
 

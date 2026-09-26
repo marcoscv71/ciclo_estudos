@@ -81,3 +81,17 @@ def test_delete_session_should_return_not_found(client, token):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Study session not found'}
+
+
+def test_progress_uses_exact_minutes(client, token, subject):
+    headers = {'Authorization': f'Bearer {token}'}
+    client.post(
+        '/sessions/',
+        headers=headers,
+        json={'subject_id': subject.id, 'minutes': 25},
+    )
+
+    body = client.get('/cycles/current', headers=headers).json()
+
+    assert body['subjects'][0]['completed_minutes'] == 25
+    assert body['subjects'][0]['percent'] == 14

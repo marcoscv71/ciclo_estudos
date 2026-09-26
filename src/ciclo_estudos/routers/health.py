@@ -9,4 +9,4 @@ router = APIRouter(tags=['health'])
 
 @router.get('/', status_code=HTTPStatus.OK, response_model=Message)
 def read_root():
-    return {'message': 'API do Ciclo de Estudos TCE-GO'}
+    return {'message': 'API do Ciclo de Estudos'}

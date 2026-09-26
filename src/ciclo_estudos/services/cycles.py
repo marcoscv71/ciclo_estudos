@@ -6,8 +6,6 @@ from ciclo_estudos.repositories.cycles import CycleRepository
 from ciclo_estudos.repositories.study_sessions import StudySessionRepository
 from ciclo_estudos.repositories.subjects import SubjectRepository
 
-MINUTES_PER_HOUR = 60
-
 
 class CycleService:
     def __init__(
@@ -38,9 +36,7 @@ class CycleService:
                 id=subject.id,
                 name=subject.name,
                 target_hours=subject.target_hours,
-                completed_hours=round(
-                    minutes.get(subject.id, 0) / MINUTES_PER_HOUR, 2
-                ),
+                completed_minutes=minutes.get(subject.id, 0),
             )
             for subject in self.subjects.list(limit=1000)
         ]
