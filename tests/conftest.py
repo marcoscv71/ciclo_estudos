@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from ciclo_estudos.app import app
-from ciclo_estudos.database import get_session
+from ciclo_estudos.database import get_session, set_sqlite_pragmas
 from ciclo_estudos.models import Subject, User, table_registry
 from ciclo_estudos.security import get_password_hash
 
@@ -42,6 +42,9 @@ def session():
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
+
+    event.listen(engine, 'connect', set_sqlite_pragmas)
+
     table_registry.metadata.create_all(engine)
 
     with Session(engine) as session:

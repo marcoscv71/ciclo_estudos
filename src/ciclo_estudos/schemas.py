@@ -92,6 +92,7 @@ class CycleProgressPublic(UTCModel):
     number: int
     started_at: datetime
     total_target_hours: float
+    total_target_minutes: int
     total_completed_hours: float
     total_completed_minutes: int
     percent: int
