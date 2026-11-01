@@ -2,6 +2,7 @@ import pytest
 
 from ciclo_estudos.exceptions import (
     SubjectAlreadyExistsError,
+    SubjectInUseError,
     SubjectNotFoundError,
 )
 from ciclo_estudos.services.subjects import SubjectService
@@ -12,6 +13,7 @@ class FakeSubjectRepository:
         self.subjects = []
         self.next_id = 1
         self.saved = None
+        self.subjects_with_sessions = set()
 
     def get_by_id(self, subject_id):
         return next((s for s in self.subjects if s.id == subject_id), None)
@@ -21,6 +23,9 @@ class FakeSubjectRepository:
 
     def list(self, offset=0, limit=100):
         return self.subjects[offset : offset + limit]
+
+    def has_study_sessions(self, subject_id):
+        return subject_id in self.subjects_with_sessions
 
     def add(self, subject):
         subject.id = self.next_id
@@ -72,3 +77,21 @@ def test_update_subject_not_found(service):
 def test_delete_subject_not_found(service):
     with pytest.raises(SubjectNotFoundError):
         service.delete(99)
+
+
+def test_delete_subject(service):
+    subject = service.create('TI - Redes', 3.0)
+
+    service.delete(subject.id)
+
+    assert service.list() == []
+
+
+def test_delete_subject_with_study_sessions(service):
+    subject = service.create('TI - Redes', 3.0)
+    service.repository.subjects_with_sessions.add(subject.id)
+
+    with pytest.raises(SubjectInUseError):
+        service.delete(subject.id)
+
+    assert service.list() == [subject]

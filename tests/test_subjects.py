@@ -97,3 +97,17 @@ def test_delete_subject(client, subject, token):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Subject deleted'}
+
+
+def test_delete_subject_with_study_sessions(client, subject, token):
+    headers = {'Authorization': f'Bearer {token}'}
+    client.post(
+        '/sessions/',
+        headers=headers,
+        json={'subject_id': subject.id, 'minutes': 30},
+    )
+
+    response = client.delete(f'/subjects/{subject.id}', headers=headers)
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'Subject has study sessions'}

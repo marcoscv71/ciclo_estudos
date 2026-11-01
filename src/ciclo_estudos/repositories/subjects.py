@@ -1,7 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
-from ciclo_estudos.models import Subject
+from ciclo_estudos.models import StudySession, Subject
 
 
 class SubjectRepository:
@@ -24,6 +24,11 @@ class SubjectRepository:
                 .offset(offset)
                 .limit(limit)
             ).all()
+        )
+
+    def has_study_sessions(self, subject_id: int) -> bool:
+        return self.session.scalar(
+            select(exists().where(StudySession.subject_id == subject_id))
         )
 
     def add(self, subject: Subject) -> Subject:

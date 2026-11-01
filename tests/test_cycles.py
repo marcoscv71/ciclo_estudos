@@ -1,4 +1,20 @@
+import time
+from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
+
+import pytest
+from sqlalchemy import select
+
+from ciclo_estudos.models import Cycle
+
+
+@pytest.fixture
+def non_utc_timezone(monkeypatch):
+    monkeypatch.setenv('TZ', 'America/Sao_Paulo')
+    time.tzset()
+    yield
+    monkeypatch.undo()
+    time.tzset()
 
 
 def test_read_current_cycle_creates_the_first_one(client, token, subject):
@@ -75,3 +91,17 @@ def test_advance_cycle(client, token, subject):
     body = client.get('/cycles/current', headers=headers).json()
     assert body['number'] == 2
     assert body['total_completed_hours'] == 0.0
+
+
+@pytest.mark.usefixtures('non_utc_timezone')
+def test_advance_cycle_stores_finished_at_in_utc(client, token, session):
+    headers = {'Authorization': f'Bearer {token}'}
+    client.get('/cycles/current', headers=headers)
+
+    client.post('/cycles/advance', headers=headers)
+
+    closed = session.scalar(select(Cycle).where(Cycle.number == 1))
+    session.refresh(closed)
+    now_utc = datetime.now(UTC).replace(tzinfo=None)
+    assert closed.finished_at >= closed.started_at
+    assert abs(now_utc - closed.finished_at) < timedelta(minutes=1)

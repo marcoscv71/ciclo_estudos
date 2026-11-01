@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from ciclo_estudos.domain import CycleProgress, SubjectProgress
 from ciclo_estudos.models import Cycle
@@ -50,7 +50,8 @@ class CycleService:
 
     def advance(self) -> Cycle:
         current = self.get_or_create_open()
-        current.finished_at = datetime.now()
+        # Stored as naive UTC, like the server_default timestamps.
+        current.finished_at = datetime.now(UTC).replace(tzinfo=None)
         self.cycles.save(current)
 
         return self.cycles.add(Cycle(number=current.number + 1))

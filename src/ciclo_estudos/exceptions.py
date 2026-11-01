@@ -10,6 +10,10 @@ class SubjectAlreadyExistsError(DomainError):
     """A subject with this name is already registered."""
 
 
+class SubjectInUseError(DomainError):
+    """The subject has study sessions and cannot be deleted."""
+
+
 class UserAlreadyExistsError(DomainError):
     """The username or email is already registered."""
 

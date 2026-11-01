@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query
 from ciclo_estudos.dependencies import CurrentUser, SubjectServiceDep
 from ciclo_estudos.exceptions import (
     SubjectAlreadyExistsError,
+    SubjectInUseError,
     SubjectNotFoundError,
 )
 from ciclo_estudos.schemas import (
@@ -78,6 +79,11 @@ def delete_subject(
     except SubjectNotFoundError:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Subject not found'
+        )
+    except SubjectInUseError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Subject has study sessions',
         )
 
     return {'message': 'Subject deleted'}

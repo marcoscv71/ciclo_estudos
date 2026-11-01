@@ -1,5 +1,6 @@
 from ciclo_estudos.exceptions import (
     SubjectAlreadyExistsError,
+    SubjectInUseError,
     SubjectNotFoundError,
 )
 from ciclo_estudos.models import Subject
@@ -36,7 +37,12 @@ class SubjectService:
         return self.repository.save(subject)
 
     def delete(self, subject_id: int) -> None:
-        self.repository.delete(self._get_or_raise(subject_id))
+        subject = self._get_or_raise(subject_id)
+
+        if self.repository.has_study_sessions(subject_id):
+            raise SubjectInUseError(subject_id)
+
+        self.repository.delete(subject)
 
     def _get_or_raise(self, subject_id: int) -> Subject:
         subject = self.repository.get_by_id(subject_id)
